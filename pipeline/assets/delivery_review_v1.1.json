@@ -1,0 +1,195 @@
+{
+  "version": "1.1",
+  "effective_date": "2026-10-20",
+  "rules": [
+    {
+      "id": "QC01",
+      "category": "测序深度",
+      "metric": "GEX input reads / passing cells",
+      "operator": ">=",
+      "threshold": 10000,
+      "unit": "reads/cell",
+      "definition": "GEX reads / passing cells"
+    },
+    {
+      "id": "QC02",
+      "category": "测序深度",
+      "metric": "CRISPR input reads / passing cells",
+      "operator": ">=",
+      "threshold": 800,
+      "unit": "reads/cell",
+      "definition": "CRISPR reads / passing cells"
+    },
+    {
+      "id": "QC03",
+      "category": "碱基质量",
+      "metric": "总体 Q30 bases 比例",
+      "operator": ">=",
+      "threshold": 0.8,
+      "unit": "fraction",
+      "definition": "GEX+CRISPR 的 Q30 bases / 总 bases"
+    },
+    {
+      "id": "QC04",
+      "category": "GEX",
+      "metric": "Barcode 匹配率",
+      "operator": ">=",
+      "threshold": 0.8,
+      "unit": "fraction",
+      "definition": "Total barcoded reads / Total input reads"
+    },
+    {
+      "id": "QC05",
+      "category": "GEX",
+      "metric": "Transcriptome mapping rate",
+      "operator": ">=",
+      "threshold": 0.7,
+      "unit": "fraction",
+      "definition": "Mapped reads / Total barcoded reads"
+    },
+    {
+      "id": "QC06",
+      "category": "GEX",
+      "metric": "Reads in passing cells",
+      "operator": ">=",
+      "threshold": 0.7,
+      "unit": "fraction",
+      "definition": "原生 Fraction of reads in passing cells"
+    },
+    {
+      "id": "QC07",
+      "category": "GEX",
+      "metric": "Median genes/passing cell",
+      "operator": ">=",
+      "threshold": 1000,
+      "unit": "count",
+      "definition": "Passing cells 的基因数中位数"
+    },
+    {
+      "id": "QC08",
+      "category": "GEX",
+      "metric": "Median molecules/passing cell",
+      "operator": ">=",
+      "threshold": 2000,
+      "unit": "count",
+      "definition": "Passing cells 的分子数中位数"
+    },
+    {
+      "id": "QC09",
+      "category": "CRISPR capture",
+      "metric": "Barcoded feature reads 比例",
+      "operator": ">=",
+      "threshold": 0.7,
+      "unit": "fraction",
+      "definition": "Total barcoded feature reads / Total input feature reads"
+    },
+    {
+      "id": "QC10",
+      "category": "CRISPR capture",
+      "metric": "Feature matching rate",
+      "operator": ">=",
+      "threshold": 0.6,
+      "unit": "fraction",
+      "definition": "Feature matching reads / Total barcoded feature reads"
+    },
+    {
+      "id": "QC11",
+      "category": "CRISPR capture",
+      "metric": "Feature reads in passing cells",
+      "operator": ">=",
+      "threshold": 0.7,
+      "unit": "fraction",
+      "definition": "原生 Fraction of feature reads in passing cells"
+    },
+    {
+      "id": "QC12",
+      "category": "CRISPR capture",
+      "metric": "Passing cells with features 比例",
+      "operator": ">=",
+      "threshold": 0.7,
+      "unit": "fraction",
+      "definition": "原生 Fraction passing cells with CRISPR reads；分母为 passing cells"
+    },
+    {
+      "id": "QC13",
+      "category": "Guide assignment",
+      "metric": "Singlet / passing cells",
+      "operator": ">=",
+      "threshold": 0.25,
+      "unit": "fraction",
+      "definition": "恰好一条阳性 guide 的 passing cells / passing cells"
+    },
+    {
+      "id": "QC14",
+      "category": "Guide assignment",
+      "metric": "Multi-guide / passing cells",
+      "operator": "<=",
+      "threshold": 0.2,
+      "unit": "fraction",
+      "definition": "至少两条阳性 guides 的 passing cells / passing cells"
+    },
+    {
+      "id": "QC15",
+      "category": "Guide assignment",
+      "metric": "Unassigned / passing cells",
+      "operator": "<=",
+      "threshold": 0.6,
+      "unit": "fraction",
+      "definition": "无阳性 guide 的 passing cells / passing cells"
+    },
+    {
+      "id": "QC16",
+      "category": "NTC",
+      "metric": "NTC singlet cells",
+      "operator": ">=",
+      "threshold": 100,
+      "unit": "count",
+      "definition": "仅分配一条 NTC guide 的 cells；不能用 feature-positive cells 代替"
+    },
+    {
+      "id": "QC17",
+      "category": "NTC",
+      "metric": "Active NTC guides",
+      "operator": ">=",
+      "threshold": 2,
+      "unit": "count",
+      "definition": "每条具有至少 5 个 singlet cells 的 NTC guides 数"
+    },
+    {
+      "id": "QC18",
+      "category": "Target coverage",
+      "metric": "Observed / designed non-NTC targets",
+      "operator": ">=",
+      "threshold": 0.9,
+      "unit": "fraction",
+      "definition": "有 singlet 的非 NTC targets / 设计中的非 NTC targets"
+    },
+    {
+      "id": "QC19",
+      "category": "Target coverage",
+      "metric": "Eligible / observed targets",
+      "operator": ">=",
+      "threshold": 0.25,
+      "unit": "fraction",
+      "definition": "至少 20 singlets 的 targets / observed targets"
+    },
+    {
+      "id": "QC20",
+      "category": "Guide support",
+      "metric": "Eligible targets with >=2 active guides",
+      "operator": ">=",
+      "threshold": 0.7,
+      "unit": "fraction",
+      "definition": "至少两条 active guides 的 eligible targets / eligible targets"
+    },
+    {
+      "id": "QC21",
+      "category": "Guide balance",
+      "metric": "Guide-balanced eligible targets",
+      "operator": ">=",
+      "threshold": 0.5,
+      "unit": "fraction",
+      "definition": "至少两条 active guides 且 largest active-guide share <=0.5 的 eligible targets / eligible targets"
+    }
+  ]
+}

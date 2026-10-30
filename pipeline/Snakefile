@@ -1,0 +1,164 @@
+"""AI-independent native DRAGEN scPerturb CRISPR workflow."""
+
+import csv
+import shlex
+from pathlib import Path
+from scperturb.common import delivery_name
+
+PROJECT = Path(config["project_root"])
+with Path(config["sample_sheet"]).open(encoding="utf-8", newline="") as handle:
+    SAMPLE_IDS = [row["sample_id"] for row in csv.DictReader(handle)]
+if not SAMPLE_IDS or len(SAMPLE_IDS) != len(set(SAMPLE_IDS)):
+    raise ValueError("sample_sheet must contain unique sample_id values")
+PYTHON = config["analysis_python"]
+RESULTS_ROOT = Path(config.get("results_root", PROJECT / "outputs"))
+LOG_ROOT = Path(config.get("log_root", PROJECT / "log"))
+RUNTIME_ROOT = Path(config.get("tmp_root", PROJECT / "tmp"))
+RUN_CONFIG = Path(workflow.configfiles[-1]) if workflow.configfiles else PROJECT / "config/run.yaml"
+PILOT_ONLY = bool(config.get("pilot_only", False))
+
+def stage(sample, name):
+    return str(RESULTS_ROOT / sample / name)
+
+def marker(sample, name):
+    return str(RESULTS_ROOT / sample / name / "05_metadata/stage_complete.json")
+
+def delivery_path(sample):
+    return RESULTS_ROOT / sample / "05_report/04_tool_output" / delivery_name(config, sample)
+
+def report_path(sample):
+    return str(delivery_path(sample) / "01_Report" / f"{sample}_scPerturb_CRISPR_report.html")
+
+def official_report_path(sample):
+    return str(delivery_path(sample) / "05_DRAGEN_Report" / f"{sample}_DRAGEN_report.html")
+
+def parity_path(sample):
+    return str(delivery_path(sample) / "04_Methods_Reproducibility/validation/dragen_report_parity.tsv")
+
+def alignment_outputs(sample):
+    return [str(delivery_path(sample) / p) for p in (
+        "03_Tables/dragen_official_metrics.tsv", "03_Tables/dragen_barcode_rank.json",
+        "02_Figures/figures/fig14_dragen_barcode_rank.png",
+        "04_Methods_Reproducibility/validation/report_v3_2_1_validation.json",
+        f"04_Methods_Reproducibility/review/{sample}_DELIVERY_REVIEW.md",
+        f"04_Methods_Reproducibility/review/{sample}_DELIVERY_REVIEW.tsv",
+        f"04_Methods_Reproducibility/review/{sample}_DELIVERY_REVIEW.json",
+        "04_Methods_Reproducibility/review/SC_PERTURB_DELIVERY_REVIEW_CRITERIA.md",
+    )]
+
+def env_prefix(sample):
+    root = RUNTIME_ROOT / sample
+    paths = [root / name for name in ("runtime", "cache", "matplotlib", "numba")]
+    setup = "mkdir -p " + " ".join(shlex.quote(str(path)) for path in paths)
+    values = {
+        "PYTHONPATH": PROJECT / "pipeline",
+        "TMPDIR": paths[0], "TMP": paths[0], "TEMP": paths[0],
+        "XDG_CACHE_HOME": paths[1], "MPLCONFIGDIR": paths[2], "NUMBA_CACHE_DIR": paths[3],
+        "OMP_NUM_THREADS": config["resources"]["analysis_threads"],
+        "OPENBLAS_NUM_THREADS": config["resources"]["analysis_threads"],
+        "MKL_NUM_THREADS": config["resources"]["analysis_threads"],
+        "NUMBA_NUM_THREADS": config["resources"]["analysis_threads"],
+    }
+    exported = "env " + " ".join(f"{key}={shlex.quote(str(value))}" for key, value in values.items())
+    return f"{setup} && {exported}"
+
+if PILOT_ONLY:
+    rule all:
+        input:
+            [marker(sample, "02_dragen_scrna_crispr") for sample in SAMPLE_IDS]
+else:
+    rule all:
+        input:
+            [path for sample in SAMPLE_IDS for path in (
+                report_path(sample), official_report_path(sample), parity_path(sample),
+                marker(sample, "05_report"), *alignment_outputs(sample),
+            )]
+
+rule input_preflight:
+    output:
+        complete=str(RESULTS_ROOT / "{sample}/01_input_preflight/05_metadata/stage_complete.json")
+    log:
+        str(LOG_ROOT / "{sample}/01_input_preflight.log")
+    params:
+        env=lambda wc: env_prefix(wc.sample), project=str(PROJECT), run_config=str(RUN_CONFIG),
+        stage=lambda wc: stage(wc.sample, "01_input_preflight"), python=PYTHON
+    threads: 1
+    shell:
+        "{params.env} {params.python} -m scperturb preflight "
+        "--config {params.run_config} --sample-id {wildcards.sample} --stage-dir {params.stage} > {log} 2>&1"
+
+rule dragen_scrna_crispr:
+    input:
+        complete=marker("{sample}", "01_input_preflight")
+    output:
+        complete=marker("{sample}", "02_dragen_scrna_crispr")
+    log:
+        str(LOG_ROOT / "{sample}/02_dragen_scrna_crispr.log")
+    params:
+        env=lambda wc: env_prefix(wc.sample), project=str(PROJECT), run_config=str(RUN_CONFIG),
+        stage=lambda wc: stage(wc.sample, "02_dragen_scrna_crispr"), python=PYTHON,
+        license_check=config.get("runtime", {}).get("license_check", "product-validation"),
+        probe_only="--license-probe-only" if PILOT_ONLY else ""
+    threads: config["resources"]["dragen_threads"]
+    resources:
+        mem_mb=config["resources"]["dragen_memory_gib"] * 1024
+    shell:
+        "{params.env} {params.python} -m scperturb dragen "
+        "--config {params.run_config} --sample-id {wildcards.sample} --stage-dir {params.stage} "
+        "--license-check {params.license_check} {params.probe_only} > {log} 2>&1"
+
+rule cell_guide_qc:
+    input:
+        complete=marker("{sample}", "02_dragen_scrna_crispr")
+    output:
+        complete=marker("{sample}", "03_cell_guide_qc")
+    log:
+        str(LOG_ROOT / "{sample}/03_cell_guide_qc.log")
+    params:
+        env=lambda wc: env_prefix(wc.sample), project=str(PROJECT), run_config=str(RUN_CONFIG),
+        stage=lambda wc: stage(wc.sample, "03_cell_guide_qc"), python=PYTHON
+    threads: config["resources"]["analysis_threads"]
+    resources:
+        mem_mb=config["resources"]["analysis_memory_gib"] * 1024
+    shell:
+        "{params.env} {params.python} -m scperturb guide-qc "
+        "--config {params.run_config} --sample-id {wildcards.sample} --stage-dir {params.stage} > {log} 2>&1"
+
+rule primary_reanalysis:
+    input:
+        complete=marker("{sample}", "03_cell_guide_qc")
+    output:
+        complete=marker("{sample}", "04_primary_reanalysis")
+    log:
+        str(LOG_ROOT / "{sample}/04_primary_reanalysis.log")
+    params:
+        env=lambda wc: env_prefix(wc.sample), project=str(PROJECT), run_config=str(RUN_CONFIG),
+        stage=lambda wc: stage(wc.sample, "04_primary_reanalysis"), python=PYTHON
+    threads: config["resources"]["analysis_threads"]
+    resources:
+        mem_mb=config["resources"]["analysis_memory_gib"] * 1024
+    shell:
+        "{params.env} {params.python} -m scperturb reanalysis "
+        "--config {params.run_config} --sample-id {wildcards.sample} --stage-dir {params.stage} > {log} 2>&1"
+
+rule report:
+    input:
+        complete=marker("{sample}", "04_primary_reanalysis"),
+        review_criteria=str(PROJECT / config.get("delivery_review_config", "pipeline/assets/delivery_review_v1.1.json"))
+    output:
+        report=report_path("{sample}"),
+        official_report=official_report_path("{sample}"),
+        parity=parity_path("{sample}"),
+        alignment=alignment_outputs("{sample}"),
+        complete=marker("{sample}", "05_report")
+    log:
+        str(LOG_ROOT / "{sample}/05_report.log")
+    params:
+        env=lambda wc: env_prefix(wc.sample), project=str(PROJECT), run_config=str(RUN_CONFIG),
+        stage=lambda wc: stage(wc.sample, "05_report"), python=PYTHON
+    threads: 1
+    resources:
+        mem_mb=config["resources"]["analysis_memory_gib"] * 1024
+    shell:
+        "{params.env} {params.python} -m scperturb report "
+        "--config {params.run_config} --sample-id {wildcards.sample} --stage-dir {params.stage} > {log} 2>&1"

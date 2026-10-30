@@ -1,0 +1,2 @@
+sample_id,project_id,lane,rglb,gex_r1,gex_r2,crispr_r1,crispr_r2
+SAMPLE_001,PROJECT_ID,1,SAMPLE_001,inputs/SAMPLE_001_GEX_R1.fastq.gz,inputs/SAMPLE_001_GEX_R2.fastq.gz,inputs/SAMPLE_001_CRISPR_R1.fastq.gz,inputs/SAMPLE_001_CRISPR_R2.fastq.gz

@@ -1,0 +1,49 @@
+# Track only reusable workflow code and generic configuration templates.
+/*
+!/.gitignore
+!/README.md
+!/config/
+!/pipeline/
+
+# Local data, shared references, execution state, and customer outputs
+/inputs/
+/reference/
+/log/
+/log*/
+/outputs/
+/outputs*/
+/tmp/
+/.snakemake/
+/config/reference_path.txt
+/config/credential_path.txt
+/config/*/run.json
+/config/*/samples.csv
+/config/*/perturbation.json
+
+# Sequencing and alignment data, regardless of their parent directory
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.bai
+*.cram
+*.crai
+*.h5
+*.h5ad
+*.mtx
+*.mtx.gz
+
+# Local sample-specific and legacy configuration
+/config/*
+!/config/analysis_layout.yaml
+!/config/run.template.json
+!/config/samples.template.csv
+!/config/perturbation.template.json
+
+# Python/runtime artifacts
+.agents/
+.codex/
+__pycache__/
+*.py[cod]
+*.building

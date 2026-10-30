@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "guide_reference": {
+    "read": "R2",
+    "target": "GTTTTAGAGCTAGAAATAGCA",
+    "position": -20,
+    "feature_type": "CRISPR Direct Capture",
+    "control_gene": "Non-Targeting Control"
+  },
+  "qc": {
+    "min_target_cells": 20,
+    "min_control_cells": 20,
+    "top_guides": 40,
+    "top_targets": 40,
+    "preflight_reads": 100000
+  },
+  "linkage": {
+    "min_overlap_cells": 10,
+    "min_overlap_fraction": 0.01,
+    "min_enrichment": 10.0
+  },
+  "expression": {
+    "normalization_target_sum": 10000,
+    "n_top_genes": 3000,
+    "n_pcs": 30,
+    "n_neighbors": 15,
+    "leiden_resolution": 0.8,
+    "random_seed": 20260925,
+    "max_de_genes": "all"
+  },
+  "pathway": {
+    "database": "Reactome",
+    "version": "97",
+    "gmt_file": "/project/reference/pathways/ReactomePathways_v97_human.gmt",
+    "gseapy_version": "1.2.1",
+    "min_gene_set_size": 15,
+    "max_gene_set_size": 500,
+    "permutation_num": 1000,
+    "random_seed": 20260925,
+    "literature_pathway_pairs": 0,
+    "literature_records_per_pair": 0
+  },
+  "reanalysis": {
+    "guide_min_singlet_cells": 5,
+    "min_expression_fraction": 0.05,
+    "top_genes_for_consistency": 100,
+    "max_guide_fraction": 0.5,
+    "direction_discordant_below": 0.5,
+    "direction_supported_at_least": 0.8,
+    "spearman_supported_at_least": 0.3,
+    "loogo_spearman_min": 0.8,
+    "loogo_direction_retention_min": 0.8,
+    "gsea_priority_permutations": 5000,
+    "gsea_priority_confidence": "SUPPORTED",
+    "gene_block_size": 512,
+    "min_pathway_coverage": 0.1
+  }
+}

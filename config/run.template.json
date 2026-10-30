@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "project_id": "PROJECT_ID",
+  "project_root": "/project",
+  "inputs_root": "/project/inputs",
+  "results_root": "/project/outputs",
+  "log_root": "/project/log",
+  "tmp_root": "/project/tmp",
+  "sample_sheet": "/project/config/samples.csv",
+  "guide_source": "/project/inputs/guides.csv",
+  "analysis_config": "/project/config/perturbation.json",
+  "analysis_python": "/opt/conda/envs/illumina_scrna/bin/python",
+  "snakemake_python": "/opt/conda/envs/workflow/bin/snakemake",
+  "dragen": {
+    "binary": "/opt/illumina/dragen/dragen-softwaremode-4.5.4_1.el9.x86_64/bin/dragen",
+    "version": "4.5.4-1",
+    "install_root": "/opt/illumina/dragen",
+    "credential": "/run/secrets/dragen-credential"
+  },
+  "reference": {
+    "source_root": "/reference/hg38",
+    "dragen_hash_dir": "/reference/hg38/reference/refdata-gex-GRCh38-2024-A-DRAGEN-v4.5/validated/dragen_hash",
+    "fasta": "/reference/hg38/reference/refdata-gex-GRCh38-2024-A-DRAGEN-v4.5/validated/hg38.fa",
+    "gtf": "/reference/hg38/reference/refdata-gex-GRCh38-2024-A-DRAGEN-v4.5/validated/genes.gtf",
+    "star_reference": "/reference/hg38/star_reference",
+    "mapper": "bundled_star",
+    "star_binary": "/opt/illumina/dragen/dragen-softwaremode-4.5.4_1.el9.x86_64/resources/single_cell/STAR"
+  },
+  "resources": {
+    "dragen_threads": 8,
+    "dragen_memory_gib": 32,
+    "analysis_threads": 8,
+    "analysis_memory_gib": 32
+  },
+  "runtime": {
+    "engine": "docker",
+    "license_check": "product-validation",
+    "preflight_reads": 100000,
+    "rna_library_type": "SF",
+    "cell_threshold": "inflection",
+    "retain_bam": false,
+    "compress_intermediate_fastq": true,
+    "pilot_only": false
+  },
+  "delivery_name": "delivery",
+  "delivery_review_config": "/project/pipeline/assets/delivery_review_v1.1.json"
+}

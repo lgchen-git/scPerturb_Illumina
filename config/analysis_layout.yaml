@@ -1,0 +1,16 @@
+project_id: scperturb_illumina
+project_root: .
+inputs_root: ./inputs
+reference_root: ./reference
+log_root: ./log
+outputs_root: ./outputs
+pipeline_root: ./pipeline
+tmp_root: ./tmp
+snakefile: ./pipeline/Snakefile
+version_control: {system: git, required: true, dirty_policy: warn, provenance_file: git_provenance.tsv, release_tag_pattern: "pipeline-vX.Y.Z"}
+stages:
+  - {number: "01", id: input_preflight, rule: input_preflight, output_dir: "01_input_preflight", final_report: false}
+  - {number: "02", id: dragen_scrna_crispr, rule: dragen_scrna_crispr, output_dir: "02_dragen_scrna_crispr", final_report: false}
+  - {number: "03", id: cell_guide_qc, rule: cell_guide_qc, output_dir: "03_cell_guide_qc", final_report: false}
+  - {number: "04", id: primary_reanalysis, rule: primary_reanalysis, output_dir: "04_primary_reanalysis", final_report: false}
+  - {number: "05", id: report, rule: report, output_dir: "05_report", final_report: true}
